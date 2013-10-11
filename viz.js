@@ -3,7 +3,6 @@ window.onload = function(){
 	var margin = {top: 20, right: 20, bottom: 30, left: 40},
 
 		width = window.innerWidth - margin.left - margin.right,
-		
 		height = window.innerHeight - margin.top - margin.bottom, 
 
 		categoryCenters = {
@@ -23,10 +22,35 @@ window.onload = function(){
 			return choices[index];
 		}
 
+		function getRandomInt (min, max) {
+            return Math.floor(Math.random() * (max - min + 1)) + min;
+        }
+
     function forceGraph(data){
 		var d = data;
 
         var k = Math.sqrt(d.nodes.length / (width * height));
+
+		d.nodes.forEach(function(nd){
+			nd.cat = choose(['left','right'])
+		});
+
+        var packages = d3.set(d.nodes.map(function(nd){
+            return nd.package;
+        })).values().filter(function(pl){
+            return pl.split('.').length <= 2;
+        });
+
+        centroids = {} 
+        for(i=0;i<packages.length;i++){
+            centroids[packages[i]] = {
+                x:getRandomInt(0,width),
+                y:getRandomInt(0,height)
+            };
+        }
+
+        console.log(centroids);
+
         var force = d3.layout.force()
             .charge(-10/k)
             .gravity(100 * k)
@@ -63,7 +87,7 @@ window.onload = function(){
                 y2:function(nd){return nd.target.y}
             })
             .style({
-                'stroke-width':function(nd){return Math.sqrt(nd.value)}
+                //'stroke-width':function(nd){return Math.sqrt(nd.value)}
             })
 
         var node = fg.selectAll('circle.node')
@@ -87,11 +111,9 @@ window.onload = function(){
             });
         
 
+        force.on('tick',function(e){
 
-
-        force.on('tick',function(){
-
-        	//node.each(moveTowardsPackage());
+        	//node.each(moveTowardsPackage(e));
 
             link.attr({
                 x1:function(nd){return nd.source.x},
@@ -107,11 +129,16 @@ window.onload = function(){
         
         })
 
-        function moveTowardsPackage(){
+        function moveTowardsPackage(e){
 			return function(d){
-				var center = categoryCenters[choose(['left','right'])];
-				d.x+=(center.x - d.x) * 0.1;
-				d.x+=(center.y - d.y) * 0.1;
+				var center = centroids[d.package];
+				if(!center){
+                   d.x += (width/2 - d.x) * 0.1;
+                   d.y += (height/2 - d.y) * 0.1; 
+                }else{
+    				d.x+=(center.x - d.x) * 0.1;
+	    			d.y+=(center.y - d.y) * 0.1;
+                }
 			};
 		}
     };
@@ -127,6 +154,6 @@ window.onload = function(){
             .transition()
             .duration(1000)
             .style('opacity',1);
-
     })
+
 }
