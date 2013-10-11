@@ -4,7 +4,12 @@ window.onload = function(){
 
 		width = window.innerWidth - margin.left - margin.right,
 		
-		height = window.innerHeight - margin.top - margin.bottom; 
+		height = window.innerHeight - margin.top - margin.bottom, 
+
+		categoryCenters = {
+			left:{x:300,y:400},
+			right:{x:900,y:400}
+		};
 
         var vis = d3.select('#chart')
             .append('svg:svg')
@@ -13,17 +18,20 @@ window.onload = function(){
         
         var d = null;
 
-
+		function choose(choices) {
+			index = Math.floor(Math.random() * choices.length);
+			return choices[index];
+		}
 
     function forceGraph(data){
 		var d = data;
 
         var k = Math.sqrt(d.nodes.length / (width * height));
-        
         var force = d3.layout.force()
             .charge(-10/k)
             .gravity(100 * k)
-            .linkDistance(100)
+            .theta(.3)
+            .linkDistance(100 * k)
             .nodes(d.nodes)
             .links(d.links)
             .size([width,height])
@@ -40,7 +48,7 @@ window.onload = function(){
             ])
             .range([5,20]);
 
-        var color = d3.scale.quantile().domain(centralities).range(['#31a354', '#74c476', '#a1d99b', '#c7e9c0'].reverse());
+        var color = d3.scale.quantile().domain(centralities).range(['#319243', '#74c476', '#a1d99b', '#c7e9c0'].reverse());
 		
 		var fg = vis.append('g').attr('class','force');
 
@@ -79,7 +87,12 @@ window.onload = function(){
             });
         
 
+
+
         force.on('tick',function(){
+
+        	//node.each(moveTowardsPackage());
+
             link.attr({
                 x1:function(nd){return nd.source.x},
                 y1:function(nd){return nd.source.y},
@@ -93,6 +106,14 @@ window.onload = function(){
             })
         
         })
+
+        function moveTowardsPackage(){
+			return function(d){
+				var center = categoryCenters[choose(['left','right'])];
+				d.x+=(center.x - d.x) * 0.1;
+				d.x+=(center.y - d.y) * 0.1;
+			};
+		}
     };
 
 	function drawGraph(data){
