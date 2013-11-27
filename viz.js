@@ -29,12 +29,14 @@ window.onload = function(){
     function forceGraph(data){
 		var d = data;
 
+        console.log(d);
+
         var k = Math.sqrt(d.nodes.length / (width * height));
 
 		d.nodes.forEach(function(nd){
 			nd.cat = choose(['left','right'])
 		});
-
+/*
         var packages = d3.set(d.nodes.map(function(nd){
             return nd.package;
         })).values().filter(function(pl){
@@ -48,14 +50,13 @@ window.onload = function(){
                 y:getRandomInt(0,height)
             };
         }
-
-        console.log(centroids);
-
+*/
         var force = d3.layout.force()
             .charge(-10/k)
-            .gravity(100 * k)
-            .theta(.3)
-            .linkDistance(100 * k)
+            .gravity(2.1)
+            .theta(.6)
+            .linkDistance(function(lk){ return (100*lk.depth) * k })
+            //.linkStrength(function(lk){ return (100*lk.depth) * k })
             .nodes(d.nodes)
             .links(d.links)
             .size([width,height])
